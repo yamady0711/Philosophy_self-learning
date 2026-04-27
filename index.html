@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Philosophia — 哲学者診断</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,600&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #0f0e0b;
+    --bg2: #1a1814;
+    --bg3: #232018;
+    --border: rgba(212,190,140,0.15);
+    --border2: rgba(212,190,140,0.3);
+    --gold: #c9a84c;
+    --gold2: #e8c97a;
+    --text: #f0e8d6;
+    --text2: #a89878;
+    --text3: #6e5e48;
+    --purple: #7c6fcd;
+    --purple2: #a99de0;
+    --red: #c46a4a;
+    --radius: 12px;
+    --radius-sm: 7px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Crimson Pro', Georgia, serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.7;
+  }
+
+  /* GRAIN OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+
+  /* HEADER */
+  header {
+    text-align: center;
+    padding: 3.5rem 1rem 2rem;
+    border-bottom: 0.5px solid var(--border);
+    position: relative;
+  }
+  .header-ornament {
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+    opacity: 0.8;
+  }
+  h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(36px, 6vw, 52px);
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    color: var(--gold2);
+    line-height: 1.1;
+    margin-bottom: 0.5rem;
+  }
+  .header-sub {
+    font-size: 16px;
+    color: var(--text2);
+    font-style: italic;
+    margin-bottom: 1.5rem;
+  }
+
+  /* PROGRESS */
+  .progress-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+  .progress-track {
+    flex: 1;
+    height: 2px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), var(--gold2));
+    border-radius: 2px;
+    transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+  }
+  .progress-label {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--text3);
+    white-space: nowrap;
+  }
+
+  /* SCREENS */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* INTRO */
+  .intro-section {
+    padding: 4rem 0 3rem;
+    text-align: center;
+  }
+  .intro-icon {
+    font-size: 64px;
+    display: block;
+    margin-bottom: 1.5rem;
+    filter: drop-shadow(0 0 30px rgba(201,168,76,0.3));
+  }
+  .intro-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 1rem;
+    line-height: 1.3;
+  }
+  .intro-body {
+    font-size: 17px;
+    color: var(--text2);
+    max-width: 500px;
+    margin: 0 auto 2.5rem;
+    line-height: 1.8;
+  }
+  .tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 2.5rem;
+  }
+  .tag {
+    font-size: 12px;
+    border: 0.5px solid var(--border2);
+    border-radius: 20px;
+    padding: 4px 14px;
+    color: var(--text2);
+    letter-spacing: 0.05em;
+  }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-block;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: var(--radius-sm);
+  }
+  .btn-gold {
+    background: var(--gold);
+    color: #1a1500;
+    border: none;
+    padding: 13px 36px;
+  }
+  .btn-gold:hover { background: var(--gold2); transform: translateY(-1px); }
+  .btn-gold:active { transform: scale(0.98); }
+  .btn-outline {
+    background: transparent;
+    color: var(--text2);
+    border: 0.5px solid var(--border2);
+    padding: 12px 28px;
+    font-size: 16px;
+  }
+  .btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .btn-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+
+  /* QUESTION */
+  .question-section { padding: 3rem 0 2rem; }
+  .q-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 1.5rem;
+  }
+  .q-num {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--gold);
+    text-transform: uppercase;
+  }
+  .q-line {
+    flex: 1;
+    height: 0.5px;
+    background: var(--border);
+  }
+  .q-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(20px, 3.5vw, 26px);
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+  }
+  .q-note {
+    font-size: 14px;
+    font-style: italic;
+    color: var(--text3);
+    margin-bottom: 2rem;
+    min-height: 1.4em;
+  }
+  .choices { display: flex; flex-direction: column; gap: 10px; margin-bottom: 2rem; }
+  .choice {
+    background: var(--bg2);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    transition: border-color 0.15s, background 0.15s;
+    text-align: left;
+    font-family: 'Crimson Pro', serif;
+    font-size: 16px;
+    color: var(--text2);
+    line-height: 1.5;
+  }
+  .choice:hover { border-color: var(--gold); color: var(--text); }
+  .choice.selected {
+    border-color: var(--gold);
+    background: rgba(201,168,76,0.08);
+    color: var(--text);
+  }
+  .choice-letter {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--text3);
+    background: var(--bg3);
+    border-radius: 4px;
+    padding: 3px 7px;
+    flex-shrink: 0;
+    margin-top: 2px;
+    font-family: 'Crimson Pro', serif;
+  }
+  .choice.selected .choice-letter { background: rgba(201,168,76,0.2); color: var(--gold); }
+
+  /* LOADING */
+  .loading-section {
+    padding: 5rem 0;
+    text-align: center;
+  }
+  .loader {
+    width: 48px;
+    height: 48px;
+    border: 1.5px solid var(--border);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1.5rem;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    color: var(--text2);
+    font-style: italic;
+  }
+
+  /* RESULT */
+  .result-section { padding: 2.5rem 0 4rem; }
+  .result-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .result-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 1rem;
+  }
+  .tendency-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(28px, 5vw, 42px);
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.2;
+    margin-bottom: 0.8rem;
+  }
+  .tendency-desc {
+    font-size: 16px;
+    color: var(--text2);
+    max-width: 560px;
+    margin: 0 auto;
+    line-height: 1.8;
+  }
+
+  /* ANSWER REVIEW */
+  .answer-review { display: flex; flex-direction: column; gap: 8px; }
+  .answer-row { display: grid; grid-template-columns: 5em 1fr; gap: 10px; align-items: baseline; font-size: 15px; line-height: 1.5; }
+  .answer-axis { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); padding-top: 2px; }
+  .answer-val { color: var(--text2); }
+  .keyword-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 1.2rem 0 0; }
+  .keyword { font-size: 13px; border: 0.5px solid rgba(201,168,76,0.35); border-radius: 20px; padding: 4px 14px; color: var(--gold); background: rgba(201,168,76,0.07); letter-spacing: 0.04em; }
+
+  /* SECTION */
+  .section { margin-bottom: 2.5rem; }
+  .section-label {
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 0.5px;
+    background: var(--border);
+  }
+
+  /* PHILOSOPHER CARDS */
+  .phil-card {
+    background: var(--bg2);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    margin-bottom: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+  .phil-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px;
+    height: 100%;
+  }
+  .phil-card.aligned::before { background: var(--gold); }
+  .phil-card.opposed::before { background: var(--red); }
+  .phil-badge {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border-radius: 20px;
+    padding: 3px 10px;
+    display: inline-block;
+    margin-bottom: 10px;
+  }
+  .phil-badge.aligned { background: rgba(201,168,76,0.12); color: var(--gold); border: 0.5px solid rgba(201,168,76,0.3); }
+  .phil-badge.opposed { background: rgba(196,106,74,0.12); color: var(--red); border: 0.5px solid rgba(196,106,74,0.3); }
+  .phil-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .phil-era {
+    font-size: 12px;
+    color: var(--text3);
+    margin-bottom: 10px;
+    letter-spacing: 0.05em;
+  }
+  .phil-reason { font-size: 15px; color: var(--text2); line-height: 1.7; }
+  .phil-links {
+    margin-top: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .phil-link {
+    font-size: 12px;
+    color: var(--purple2);
+    border: 0.5px solid rgba(124,111,205,0.3);
+    border-radius: 20px;
+    padding: 4px 12px;
+    text-decoration: none;
+    transition: border-color 0.15s, color 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .phil-link:hover { color: var(--gold2); border-color: var(--gold); }
+  .phil-link::after { content: '↗'; font-size: 10px; }
+
+  /* RESEARCH */
+  .research-list { list-style: none; }
+  .research-item {
+    border-bottom: 0.5px solid var(--border);
+    padding: 14px 0 14px 20px;
+    position: relative;
+    font-size: 15px;
+    color: var(--text2);
+    line-height: 1.6;
+  }
+  .research-item::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--gold);
+    font-size: 13px;
+  }
+  .research-item:last-child { border-bottom: none; }
+  .research-link {
+    color: var(--purple2);
+    text-decoration: none;
+    border-bottom: 0.5px solid rgba(124,111,205,0.3);
+    transition: color 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .research-link:hover { color: var(--gold2); }
+  .research-link::after { content: '↗'; font-size: 10px; }
+
+  /* QUOTE */
+  .quote-block {
+    background: var(--bg2);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    position: relative;
+  }
+  .quote-mark {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 80px;
+    line-height: 1;
+    color: var(--gold);
+    opacity: 0.2;
+    position: absolute;
+    top: 0.5rem;
+    left: 1.2rem;
+  }
+  .quote-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(18px, 3vw, 24px);
+    font-style: italic;
+    color: var(--text);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    padding-top: 0.5rem;
+  }
+  .quote-attr { font-size: 13px; color: var(--gold); letter-spacing: 0.08em; }
+  .quote-context {
+    margin-top: 10px;
+    font-size: 14px;
+    color: var(--text3);
+    font-style: italic;
+  }
+
+  /* SHARE */
+  .share-section {
+    background: var(--bg2);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  .share-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+  }
+  .share-body { font-size: 14px; color: var(--text2); margin-bottom: 1.2rem; }
+
+  /* FOOTER */
+  footer {
+    text-align: center;
+    padding: 2rem 1rem 3rem;
+    border-top: 0.5px solid var(--border);
+    font-size: 12px;
+    color: var(--text3);
+    letter-spacing: 0.05em;
+  }
+
+  /* DIVIDER */
+  .ornament-divider {
+    text-align: center;
+    color: var(--gold);
+    opacity: 0.4;
+    font-size: 16px;
+    letter-spacing: 0.5em;
+    margin: 2rem 0;
+  }
+
+  @media (max-width: 600px) {
+    .wrap { padding: 0 1rem; }
+    .phil-card { padding: 1.2rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="header-ornament">◈ Philosophia ◈</div>
+    <h1>哲学者診断</h1>
+    <p class="header-sub">あなたの思想に最も近い哲学者を探す旅</p>
+    <div class="progress-wrap">
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill" style="width:0%"></div>
+      </div>
+      <span class="progress-label" id="progressLabel">0 / 5</span>
+    </div>
+  </header>
+
+  <!-- INTRO -->
+  <div class="screen active" id="screen-intro">
+    <div class="intro-section">
+      <span class="intro-icon">🦉</span>
+      <h2 class="intro-title">あなたの哲学的傾向を<br>発見しましょう</h2>
+      <p class="intro-body">
+        知識・倫理・自由・社会・自己——5つのテーマについて直感で答えるだけで、あなたの思想に共鳴する哲学者と対立する哲学者を紹介します。さらに学びを深めるための参考リンクも提供します。
+      </p>
+      <div class="tag-list">
+        <span class="tag">認識論</span>
+        <span class="tag">倫理学</span>
+        <span class="tag">自由論</span>
+        <span class="tag">政治哲学</span>
+        <span class="tag">自己論</span>
+      </div>
+      <button class="btn btn-gold" onclick="startQuiz()">診断をはじめる</button>
+    </div>
+  </div>
+
+  <!-- QUESTION -->
+  <div class="screen" id="screen-question">
+    <div class="question-section">
+      <div class="q-meta">
+        <span class="q-num" id="qNum">問い 1 / 5</span>
+        <div class="q-line"></div>
+      </div>
+      <div class="q-text" id="qText"></div>
+      <div class="q-note" id="qNote"></div>
+      <div class="choices" id="choicesContainer"></div>
+      <div class="btn-row">
+        <button class="btn btn-gold" id="nextBtn" onclick="nextQuestion()" disabled>次へ</button>
+        <button class="btn btn-outline" id="prevBtn" onclick="prevQuestion()" style="display:none">戻る</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div class="screen" id="screen-loading">
+    <div class="loading-section">
+      <div class="loader"></div>
+      <div class="loading-text">思想の地図を描いています...</div>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="screen" id="screen-result">
+    <div class="result-section" id="resultContent"></div>
+  </div>
+
+  <footer>
+    Philosophia — 哲学独学促進アプリ &nbsp;·&nbsp; 早稲田大学哲学科へ贈る
+  </footer>
+</div>
+
+<script>
+const QUESTIONS = [
+  {
+    text: "人間の知識の源泉はどこにあると思いますか？",
+    note: "直感で答えてみてください。",
+    axis: "epistemology",
+    choices: [
+      { label:"A", text:"生まれながらに持っている理性や先天的な概念にある", scores: { rationalism:3, empiricism:0, communitarian:0, critical:1 } },
+      { label:"B", text:"感覚・経験・観察を通じて得られるものだ", scores: { rationalism:0, empiricism:3, communitarian:0, critical:1 } },
+      { label:"C", text:"社会や言語など、外部の文化的文脈に依存している", scores: { rationalism:0, empiricism:1, communitarian:3, critical:1 } },
+      { label:"D", text:"知ることの限界を問い直すことが重要だ", scores: { rationalism:1, empiricism:1, communitarian:0, critical:3 } },
+    ]
+  },
+  {
+    text: "「善い行い」とはどのようなものだと思いますか？",
+    note: "",
+    axis: "ethics",
+    choices: [
+      { label:"A", text:"結果として最大多数の最大幸福をもたらす行為", scores: { consequentialist:3, deontological:0, virtue:0, care:1 } },
+      { label:"B", text:"いかなる結果にかかわらず、義務や法則に従う行為", scores: { consequentialist:0, deontological:3, virtue:0, care:0 } },
+      { label:"C", text:"徳や品性から自然と生まれる行為", scores: { consequentialist:0, deontological:1, virtue:3, care:1 } },
+      { label:"D", text:"共感・ケア・関係性を大切にする行為", scores: { consequentialist:1, deontological:0, virtue:1, care:3 } },
+    ]
+  },
+  {
+    text: "自由とはどのようなものだと思いますか？",
+    note: "",
+    axis: "freedom",
+    choices: [
+      { label:"A", text:"外部の制約がなく、好きに行動できること", scores: { liberal:3, autonomy:1, existential:1, social:0 } },
+      { label:"B", text:"理性に従い自律的に行動できること", scores: { liberal:0, autonomy:3, existential:1, social:0 } },
+      { label:"C", text:"自分の存在意義を自ら選び取ること", scores: { liberal:1, autonomy:1, existential:3, social:0 } },
+      { label:"D", text:"社会や他者との共生の中でこそ実現されるもの", scores: { liberal:0, autonomy:0, existential:0, social:3 } },
+    ]
+  },
+  {
+    text: "社会や国家の役割はどうあるべきだと思いますか？",
+    note: "",
+    axis: "politics",
+    choices: [
+      { label:"A", text:"個人の自由と権利を最大限に守るべきだ", scores: { libertarian:3, utilitarian_state:0, communitarian:0, critical:1 } },
+      { label:"B", text:"社会全体の福利を増進するために積極的に機能すべきだ", scores: { libertarian:0, utilitarian_state:3, communitarian:1, critical:0 } },
+      { label:"C", text:"人々が共通善のために協力できる場を提供すべきだ", scores: { libertarian:0, utilitarian_state:1, communitarian:3, critical:0 } },
+      { label:"D", text:"権力構造や抑圧を問い直すものであるべきだ", scores: { libertarian:1, utilitarian_state:0, communitarian:0, critical:3 } },
+    ]
+  },
+  {
+    text: "「自己」とはどのようなものだと思いますか？",
+    note: "",
+    axis: "self",
+    choices: [
+      { label:"A", text:"明確な同一性を持つ、不変の実体として存在する", scores: { substance:3, constructive:0, existential:0, relational:0 } },
+      { label:"B", text:"経験や記憶の連続によって形成される流動的なもの", scores: { substance:0, constructive:2, existential:1, relational:1 } },
+      { label:"C", text:"自由に選択し、意味を作り出す存在だ", scores: { substance:0, constructive:0, existential:3, relational:0 } },
+      { label:"D", text:"社会・言語・関係性によって構築されるもの", scores: { substance:0, constructive:1, existential:0, relational:3 } },
+    ]
+  }
+];
+
+// Philosopher database
+const PHILOSOPHERS = [
+  {
+    id: "hegel",
+    name: "ヘーゲル",
+    fullname: "G.W.F. ヘーゲル",
+    era: "18〜19世紀 / ドイツ",
+    tags: { communitarian:3, social:3, deontological:2, relational:2 },
+    reason_aligned: "知識と自己が社会・言語・関係性の中で構築されるというあなたの視点は、ヘーゲルの「人倫（Sittlichkeit）」論と強く共鳴します。自由もまた共同体の中で実現されるという彼の主張は、あなたの直感と一致しています。",
+    reason_opposed: "ヘーゲルは国家を「倫理の最高形態」とみなし、個人の自由はその内側でのみ実現されると考えました。個人の権利を国家より優先するリベラルな立場とは根本から対立します。",
+    links: [
+      { label: "Stanford Encyclopedia of Philosophy", url: "https://plato.stanford.edu/entries/hegel/" },
+      { label: "Wikipedia (日本語)", url: "https://ja.wikipedia.org/wiki/%E3%82%B2%E3%82%AA%E3%83%AB%E3%82%AF%E3%83%BB%E3%83%B4%E3%82%A3%E3%83%AB%E3%83%98%E3%83%AB%E3%83%A0%E3%83%BB%E3%83%95%E3%83%AA%E3%83%BC%E3%83%89%E3%83%AA%E3%83%92%E3%83%BB%E3%83%98%E3%83%BC%E3%82%B2%E3%83%AB" }
+    ],
+    books: [
+      { title: "『法の哲学』", note: "ヘーゲル著。共同体・自由・国家を論じる主著。", url: "https://ja.wikipedia.org/wiki/%E6%B3%95%E3%81%AE%E5%93%B2%E5%AD%A6" },
+      { title: "長谷川宏『ヘーゲル入門』", note: "日本語で読める明快な入門書。", url: "https://www.iwanami.co.jp/smp/book/b265715.html" }
+    ]
+  },
+  {
+    id: "kant",
+    name: "カント",
+    fullname: "イマヌエル・カント",
+    era: "18世紀 / ドイツ",
+    tags: { deontological:3, autonomy:3, rationalism:3, substance:2 },
+    reason_aligned: "結果にかかわらず義務に従う道徳観はカントの「定言命法」そのものです。理性による自律的な行為を善の根拠とするカントの倫理学は、あなたの倫理的直感と深く一致しています。",
+    reason_opposed: "カントは自己を感性世界から独立した「理性的存在」として捉え、社会や言語によって自己が構築されるという考えを認めません。また知識の源泉を先天的な理性形式に求める点で、経験論・文化論的アプローチと対立します。",
+    links: [
+      { label: "Stanford Encyclopedia of Philosophy", url: "https://plato.stanford.edu/entries/kant/" },
+      { label: "Wikipedia (日本語)", url: "https://ja.wikipedia.org/wiki/%E3%82%A4%E3%83%9E%E3%83%8C%E3%82%A8%E3%83%AB%E3%83%BB%E3%82%AB%E3%83%B3%E3%83%88" }
+    ],
+    books: [
+      { title: "『道徳形而上学の基礎づけ』", note: "カント倫理学の出発点となる短い名著。", url: "https://ja.wikipedia.org/wiki/%E9%81%93%E5%BE%B3%E5%BD%A2%E8%80%8C%E4%B8%8A%E5%AD%A6%E3%81%AE%E5%9F%BA%E7%A4%8E%E3%81%A5%E3%81%91" },
+      { title: "岩波文庫『純粋理性批判』解説", note: "認識論の全体像をつかむために。", url: "https://www.iwanami.co.jp/search/?word=%E7%B4%94%E7%B2%8B%E7%90%86%E6%80%A7%E6%89%B9%E5%88%A4" }
+    ]
+  },
+  {
+    id: "locke",
+    name: "ロック",
+    fullname: "ジョン・ロック",
+    era: "17世紀 / イギリス",
+    tags: { empiricism:3, libertarian:3, substance:1, consequentialist:1 },
+    reason_aligned: "知識は経験から得られるというロックの経験論は、感覚・観察を重視する立場と完全に一致します。個人の自由と権利を守ることを国家の第一義とするリベラリズムの思想的起源でもあります。",
+    reason_opposed: "ロックは自己を社会以前に存在する独立した個人として捉え、国家の役割を個人の自然権保護に限定します。社会や関係性が自己を構築するという視点や、共通善のために国家が積極的に機能すべきという考えとは相容れません。",
+    links: [
+      { label: "Stanford Encyclopedia of Philosophy", url: "https://plato.stanford.edu/entries/locke/" },
+      { label: "Wikipedia (日本語)", url: "https://ja.wikipedia.org/wiki/%E3%82%B8%E3%83%A7%E3%83%B3%E3%83%BB%E3%83%AD%E3%83%83%E3%82%AF" }
+    ],
+    books: [
+      { title: "『統治二論』", note: "近代自由主義の古典。個人の権利と政府の役割を論じる。", url: "https://ja.wikipedia.org/wiki/%E7%B5%B1%E6%B2%BB%E4%BA%8C%E8%AB%96" },
+      { title: "『人間知性論』", note: "経験論の基礎を築いた認識論の主著。", url: "https://ja.wikipedia.org/wiki/%E4%BA%BA%E9%96%93%E7%9F%A5%E6%80%A7%E8%AB%96" }
+    ]
+  },
+  {
+    id: "sartre",
+    name: "サルトル",
+    fullname: "ジャン＝ポール・サルトル",
+    era: "20世紀 / フランス",
+    tags: { existential:3, liberal:2, consequentialist:1 },
+    reason_aligned: "自分の存在意義を自ら選び取るという自由観は、サルトルの「実存は本質に先立つ」という命題と完全に一致します。人間はあらかじめ定められた本質を持たず、自らの選択によって自己を創るというサルトルの思想はあなたの立場を支持します。",
+    reason_opposed: "サルトルは徹底した個人の選択の自由と責任を強調し、社会や言語が自己を構築するという考えには批判的です。義務や共通善によって行動を規定する立場にも、「他者は地獄だ」という言葉に象徴されるように懐疑的でした。",
+    links: [
+      { label: "Stanford Encyclopedia of Philosophy", url: "https://plato.stanford.edu/entries/sartre/" },
+      { label: "Wikipedia (日本語)", url: "https://ja.wikipedia.org/wiki/%E3%82%B8%E3%83%A3%E3%83%B3%EF%BC%9D%E3%83%9D%E3%83%BC%E3%83%AB%E3%83%BB%E3%82%B5%E3%83%AB%E3%83%88%E3%83%AB" }
+    ],
+    books: [
+      { title: "『実存主義とは何か』", note: "サルトル哲学の入門として最適な講演録。短くて読みやすい。", url: "https://ja.wikipedia.org/wiki/%E5%AE%9F%E5%AD%98%E4%B8%BB%E7%BE%A9%E3%81%A8%E3%81%AF%E4%BD%95%E3%81%8B" },
+      { title: "『嘔吐』", note: "実存哲学を小説で体感できる代表作。", url: "https://ja.wikipedia.org/wiki/%E5%98%94%E5%90%90_(%E3%82%B5%E3%83%AB%E3%83%88%E3%83%AB)" }
+    ]
+  },
+  {
+    id: "mill",
+    name: "ミル",
+    fullname: "ジョン・スチュアート・ミル",
+    era: "19世紀 / イギリス",
+    tags: { consequentialist:3, empiricism:2, libertarian:2, utilitarian_state:2 },
+    reason_aligned: "最大多数の最大幸福を善の基準とするミルの功利主義は、結果と全体の幸福を重視する立場と一致します。個人の自由を尊重しながら社会的幸福を追求するバランス感覚も、リベラルな価値観と共鳴します。",
+    reason_opposed: "義務そのものを善の根拠とする義務論的倫理観や、関係性を道徳の中心に置くケア倫理とは根本的に対立します。また徳や品性より結果を優先するため、徳倫理学とも緊張関係にあります。",
+    links: [
+      { label: "Stanford Encyclopedia of Philosophy", url: "https://plato.stanford.edu/entries/mill/" },
+      { label: "Wikipedia (日本語)", url: "https://ja.wikipedia.org/wiki/%E3%82%B8%E3%83%A7%E3%83%B3%E3%83%BB%E3%82%B9%E3%83%81%E3%83%A5%E3%82%A2%E3%83%BC%E3%83%88%E3%83%BB%E3%83%9F%E3%83%AB" }
+    ],
+    books: [
+      { title: "『功利主義』", note: "功利主義の古典的定式化。薄くて読みやすい。", url: "https://ja.wikipedia.org/wiki/%E5%8A%9F%E5%88%A9%E4%B8%BB%E7%BE%A9_(%E3%83%9F%E3%83%AB)" },
+      { title: "『自由論』", note: "個人の自由と社会の限界を論じた自由主義の聖典。", url: "https://ja.wikipedia.org/wiki/%E8%87%AA%E7%94%B1%E8%AB%96_(%E3%83%9F%E3%83%AB)" }
+    ]
+  },
+  {
+    id: "wittgenstein",
+    name: "ウィトゲンシュタイン",
+    fullname: "ルートヴィヒ・ウィトゲンシュタイン",
+    era: "20世紀 / オーストリア",
+    tags: { communitarian:2, relational:3, critical:3, empiricism:1 },
+    reason_aligned: "知識が社会的・言語的実践の中に根ざすというウィトゲンシュタインの後期哲学は、あなたの認識論的直感と深く共鳴します。「言語ゲーム」という概念は、知識が文化的文脈に依存するという考えの最も鋭い哲学的表現の一つです。",
+    reason_opposed: "先天的な理性や不変の自己同一性を想定する立場に対して、ウィトゲンシュタインは語ることのできない「内的実体」を哲学的誤謬と批判します。形而上学的な問いそのものを解消しようとする姿勢は、本質を問う伝統哲学と鋭く対立します。",
+    links: [
+      { label: "Stanford Encyclopedia of Philosophy", url: "https://plato.stanford.edu/entries/wittgenstein/" },
+      { label: "Wikipedia (日本語)", url: "https://ja.wikipedia.org/wiki/%E3%83%AB%E3%83%BC%E3%83%88%E3%83%B4%E3%82%A3%E3%83%92%E3%83%BB%E3%82%A6%E3%82%A3%E3%83%88%E3%82%B2%E3%83%B3%E3%82%B7%E3%83%A5%E3%82%BF%E3%82%A4%E3%83%B3" }
+    ],
+    books: [
+      { title: "『哲学探究』", note: "後期ウィトゲンシュタインの主著。言語ゲーム論の核心。", url: "https://ja.wikipedia.org/wiki/%E5%93%B2%E5%AD%A6%E6%8E%A2%E7%A9%B6" },
+      { title: "飯田隆『ウィトゲンシュタイン入門』（ちくま新書）", note: "日本語で読める優れた入門書。", url: "https://www.chikumashobo.co.jp/product/9784480059086/" }
+    ]
+  },
+  {
+    id: "aristotle",
+    name: "アリストテレス",
+    fullname: "アリストテレス",
+    era: "古代 / ギリシャ",
+    tags: { virtue:3, communitarian:2, social:2, substance:2 },
+    reason_aligned: "徳や品性から善い行いが生まれるという徳倫理学の立場は、アリストテレスの『ニコマコス倫理学』の核心と一致します。共同体の中で人間が本来の能力を発揮するというポリス哲学も、社会の中で自由や善が実現されるというあなたの視点と共鳴します。",
+    reason_opposed: "アリストテレスは自己を本質的な実体として捉え、社会・言語によって構築されるという現代的な構築主義と相容れません。また結果を無視して義務に従う立場に対しても、目的論的倫理学の観点から批判的です。",
+    links: [
+      { label: "Stanford Encyclopedia of Philosophy", url: "https://plato.stanford.edu/entries/aristotle/" },
+      { label: "Wikipedia (日本語)", url: "https://ja.wikipedia.org/wiki/%E3%82%A2%E3%83%AA%E3%82%B9%E3%83%88%E3%83%86%E3%83%AC%E3%82%B9" }
+    ],
+    books: [
+      { title: "『ニコマコス倫理学』", note: "徳倫理学の原点。「幸福とは何か」を問う古典中の古典。", url: "https://ja.wikipedia.org/wiki/%E3%83%8B%E3%82%B3%E3%83%9E%E3%82%B3%E3%82%B9%E5%80%AB%E7%90%86%E5%AD%A6" },
+      { title: "今道友信『アリストテレス入門』（ちくま新書）", note: "思想全体をコンパクトに把握できる入門書。", url: "https://www.chikumashobo.co.jp/product/9784480059192/" }
+    ]
+  },
+  {
+    id: "foucault",
+    name: "フーコー",
+    fullname: "ミシェル・フーコー",
+    era: "20世紀 / フランス",
+    tags: { critical:3, relational:2, communitarian:1 },
+    reason_aligned: "権力構造や抑圧を問い直す批判的姿勢、自己が社会的・歴史的に構築されるという視点はフーコーの思想と鮮明に重なります。「知識は権力と無縁ではない」というフーコーの洞察は、あなたの認識論的な問いを鋭く深化させてくれます。",
+    reason_opposed: "共通善や義務を前提とする倫理学・政治哲学に対して、フーコーはそれ自体が権力の産物である可能性を問います。ヘーゲル的な国家への信頼や、普遍的な道徳法則の存在を疑わない立場とは根本から緊張関係にあります。",
+    links: [
+      { label: "Stanford Encyclopedia of Philosophy", url: "https://plato.stanford.edu/entries/foucault/" },
+      { label: "Wikipedia (日本語)", url: "https://ja.wikipedia.org/wiki/%E3%83%9F%E3%82%B7%E3%82%A7%E3%83%AB%E3%83%BB%E3%83%95%E3%83%BC%E3%82%B3%E3%83%BC" }
+    ],
+    books: [
+      { title: "『監獄の誕生』", note: "権力・規律・身体の関係を分析したフーコーの代表作。", url: "https://ja.wikipedia.org/wiki/%E7%9B%A3%E7%8D%84%E3%81%AE%E8%AA%95%E7%94%9F" },
+      { title: "中山元『フーコー入門』（ちくま新書）", note: "思想全体への明快な入門。", url: "https://www.chikumashobo.co.jp/product/9784480058645/" }
+    ]
+  }
+];
+
+const QUOTES = [
+  { text: "人間は自由であるように呪われている。", author: "サルトル", context: "あなたが選ぶ思想そのものが、すでにあなた自身の自由の行使です。" },
+  { text: "無知の知こそが知恵への入口である。", author: "ソクラテス（プラトン伝）", context: "哲学を学ぶとは、自分が何を知らないかを知ることから始まります。" },
+  { text: "語りえぬものについては、沈黙しなければならない。", author: "ウィトゲンシュタイン", context: "言語の限界を意識することで、哲学はより誠実になれます。" },
+  { text: "他者は地獄だ。", author: "サルトル", context: "他者との関係を問い直すことが、自己を問い直すことと同じです。" },
+  { text: "人間は社会的動物である。", author: "アリストテレス", context: "あなたの思想は、その言葉をさらに深めようとしているかもしれません。" },
+  { text: "哲学すること——それは死を学ぶことである。", author: "モンテーニュ", context: "一次情報に向かうとき、その言葉の重みを感じてみてください。" },
+];
+
+// Axis labels for answer review
+const RADAR_AXES = [
+  { key: "epistemology", label: "認識論" },
+  { key: "ethics", label: "倫理学" },
+  { key: "freedom", label: "自由論" },
+  { key: "politics", label: "政治哲学" },
+  { key: "self", label: "自己論" },
+];
+
+// Tendency labels
+const TENDENCIES = [
+  { keys: { communitarian:true, relational:true, deontological:true }, name: "社会的構成主義・共同体主義", desc: "あなたは知識も自己も社会・言語・関係性の中で構築されると考え、共同体における義務と共通善を重視する傾向があります。ヘーゲルやウィトゲンシュタイン後期の思想と近い立場です。", keywords: ["社会的構成主義", "共同体主義", "言語哲学", "承認論"] },
+  { keys: { rationalism:true, deontological:true, autonomy:true }, name: "理性主義・義務論的倫理観", desc: "あなたは理性と先天的知識を重視し、行為の善悪を結果ではなく義務・法則に求める傾向があります。カントの批判哲学と強く共鳴する立場です。", keywords: ["理性主義", "義務論倫理学", "認識批判", "自律"] },
+  { keys: { empiricism:true, consequentialist:true, libertarian:true }, name: "経験主義・自由主義", desc: "あなたは感覚と経験を知識の源泉とし、個人の自由と権利を最優先する傾向があります。ロックやミルに代表される英国自由主義の系譜と共鳴します。", keywords: ["経験主義", "自由主義", "功利主義", "自然権"] },
+  { keys: { existential:true, liberal:true }, name: "実存主義・個人的自由", desc: "あなたは自己の選択と責任を哲学の中心に置き、既成の本質や規則から自由に自己を創造しようとする傾向があります。サルトルやカミュの実存哲学と近い立場です。", keywords: ["実存主義", "自己決定", "実存先行", "不条理"] },
+  { keys: { critical:true, relational:true }, name: "批判的思考・関係論的自己観", desc: "あなたは権力や既成の価値観を問い直す批判的姿勢と、自己が関係性の中で構築されるという視点を持ちます。フーコーやウィトゲンシュタインと共鳴する思想的立場です。", keywords: ["批判理論", "系譜学", "権力/知", "言語ゲーム"] },
+  { keys: { virtue:true, communitarian:true, social:true }, name: "徳倫理学・共同体主義", desc: "あなたは品性や徳から善が生まれると考え、共同体の中で人間は本来の力を発揮できると信じる傾向があります。アリストテレス哲学と深く共鳴する立場です。", keywords: ["徳倫理学", "目的論", "ポリス", "幸福論"] },
+];
+
+let currentQ = 0;
+let answers = [];
+let selectedIndex = null;
+
+function setScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+}
+function updateProgress() {
+  const pct = (currentQ / QUESTIONS.length) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = currentQ + ' / ' + QUESTIONS.length;
+}
+function startQuiz() {
+  currentQ = 0; answers = []; selectedIndex = null;
+  renderQuestion();
+  setScreen('question');
+  updateProgress();
+}
+function renderQuestion() {
+  const q = QUESTIONS[currentQ];
+  selectedIndex = answers[currentQ] !== undefined ? answers[currentQ] : null;
+  document.getElementById('qNum').textContent = '問い ' + (currentQ+1) + ' / ' + QUESTIONS.length;
+  document.getElementById('qText').textContent = q.text;
+  document.getElementById('qNote').textContent = q.note;
+  const c = document.getElementById('choicesContainer');
+  c.innerHTML = '';
+  q.choices.forEach((ch, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'choice' + (selectedIndex === i ? ' selected' : '');
+    btn.innerHTML = '<span class="choice-letter">' + ch.label + '</span><span>' + ch.text + '</span>';
+    btn.onclick = () => selectChoice(i);
+    c.appendChild(btn);
+  });
+  document.getElementById('nextBtn').disabled = selectedIndex === null;
+  document.getElementById('prevBtn').style.display = currentQ > 0 ? 'inline-block' : 'none';
+  updateProgress();
+}
+function selectChoice(i) {
+  selectedIndex = i;
+  answers[currentQ] = i;
+  document.querySelectorAll('.choice').forEach((b, idx) => b.classList.toggle('selected', idx === i));
+  document.getElementById('nextBtn').disabled = false;
+}
+function nextQuestion() {
+  if (selectedIndex === null) return;
+  answers[currentQ] = selectedIndex;
+  currentQ++;
+  if (currentQ >= QUESTIONS.length) {
+    showLoading();
+    setTimeout(computeResult, 800);
+  } else { renderQuestion(); }
+}
+function prevQuestion() {
+  if (currentQ > 0) { currentQ--; renderQuestion(); }
+}
+function showLoading() {
+  document.getElementById('progressFill').style.width = '100%';
+  document.getElementById('progressLabel').textContent = '5 / 5';
+  setScreen('loading');
+}
+
+function computeResult() {
+  // Accumulate all scores
+  const scores = {};
+  QUESTIONS.forEach((q, qi) => {
+    const ch = q.choices[answers[qi]];
+    Object.entries(ch.scores).forEach(([k, v]) => {
+      scores[k] = (scores[k] || 0) + v;
+    });
+  });
+
+  // Find tendency
+  let tendency = TENDENCIES[0];
+  let bestMatch = -1;
+  TENDENCIES.forEach(t => {
+    let match = 0;
+    Object.keys(t.keys).forEach(k => { if ((scores[k] || 0) >= 2) match++; });
+    if (match > bestMatch) { bestMatch = match; tendency = t; }
+  });
+
+  // Score philosophers
+  const philScores = PHILOSOPHERS.map(p => {
+    let total = 0;
+    Object.entries(p.tags).forEach(([k, v]) => {
+      total += (scores[k] || 0) * v;
+    });
+    return { phil: p, score: total };
+  }).sort((a, b) => b.score - a.score);
+
+  const aligned = philScores[0].phil;
+  const opposed = philScores[philScores.length - 1].phil;
+  const quote = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+
+  renderResult(tendency, aligned, opposed, quote);
+  setScreen('result');
+}
+
+function renderResult(tendency, aligned, opposed, quote) {
+  const axisLabels = ["認識論","倫理学","自由論","政治哲学","自己論"];
+  const answerRows = QUESTIONS.map((q, i) => {
+    return '<div class="answer-row"><span class="answer-axis">' + axisLabels[i] + '</span><span class="answer-val">' + q.choices[answers[i]].text + '</span></div>';
+  }).join('');
+
+  const html = `
+    <div class="result-header">
+      <div class="result-title">◈ 診断結果 ◈</div>
+      <div class="tendency-name">${tendency.name}</div>
+      <div class="tendency-desc">${tendency.desc}</div>
+      <div class="keyword-list">
+        ${tendency.keywords.map(k => '<span class="keyword">' + k + '</span>').join('')}
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">あなたの回答</div>
+      <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:1.4rem 1.6rem;">
+        <div class="answer-review">${answerRows}</div>
+      </div>
+    </div>
+
+    <div class="ornament-divider">· · ·</div>
+
+    <div class="section">
+      <div class="section-label">共鳴する哲学者</div>
+      <div class="phil-card aligned">
+        <span class="phil-badge aligned">あなたに近い思想</span>
+        <div class="phil-name">${aligned.fullname}</div>
+        <div class="phil-era">${aligned.era}</div>
+        <div class="phil-reason">${aligned.reason_aligned}</div>
+        <div class="phil-links">
+          ${aligned.links.map(l => '<a class="phil-link" href="' + l.url + '" target="_blank" rel="noopener">' + l.label + '</a>').join('')}
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">対立する哲学者</div>
+      <div class="phil-card opposed">
+        <span class="phil-badge opposed">対極にある思想</span>
+        <div class="phil-name">${opposed.fullname}</div>
+        <div class="phil-era">${opposed.era}</div>
+        <div class="phil-reason">${opposed.reason_opposed}</div>
+        <div class="phil-links">
+          ${opposed.links.map(l => '<a class="phil-link" href="' + l.url + '" target="_blank" rel="noopener">' + l.label + '</a>').join('')}
+        </div>
+      </div>
+    </div>
+
+    <div class="ornament-divider">· · ·</div>
+
+    <div class="section">
+      <div class="section-label">さらに深く学ぶために</div>
+      <ul class="research-list">
+        ${[...aligned.books, ...opposed.books.slice(0,1)].map(b =>
+          '<li class="research-item"><strong style="color:var(--text)">' + b.title + '</strong> — ' + b.note + ' <a class="research-link" href="' + b.url + '" target="_blank" rel="noopener">参考リンク</a></li>'
+        ).join('')}
+        <li class="research-item">
+          <strong style="color:var(--text)">Stanford Encyclopedia of Philosophy</strong> — 世界最高水準の哲学事典。英語だが無料でオープンアクセス。
+          <a class="research-link" href="https://plato.stanford.edu/" target="_blank" rel="noopener">Stanford Encyclopedia</a>
+        </li>
+        <li class="research-item">
+          <strong style="color:var(--text)">青空文庫</strong> — パブリックドメインの哲学書を日本語で無料閲覧できる。
+          <a class="research-link" href="https://www.aozora.gr.jp/" target="_blank" rel="noopener">青空文庫</a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="ornament-divider">· · ·</div>
+
+    <div class="section">
+      <div class="section-label">今日の哲学者からのことば</div>
+      <div class="quote-block">
+        <div class="quote-mark">"</div>
+        <div class="quote-text">「${quote.text}」</div>
+        <div class="quote-attr">― ${quote.author}</div>
+        <div class="quote-context">${quote.context}</div>
+      </div>
+    </div>
+
+    <div class="share-section">
+      <div class="share-title">友人とシェアしよう</div>
+      <div class="share-body">同じ学科の仲間に診断を勧めて、互いの哲学的傾向を比べてみましょう。</div>
+      <button class="btn btn-outline" onclick="copyUrl()">このページのURLをコピー</button>
+      <div id="copyMsg" style="font-size:13px;color:var(--gold);margin-top:8px;height:1.4em;"></div>
+    </div>
+
+    <div class="btn-row" style="justify-content:center;margin-top:1rem">
+      <button class="btn btn-gold" onclick="restart()">もう一度診断する</button>
+    </div>
+  `;
+  document.getElementById('resultContent').innerHTML = html;
+}
+
+function copyUrl() {
+  const url = window.location.href;
+  navigator.clipboard.writeText(url).then(() => {
+    document.getElementById('copyMsg').textContent = 'コピーしました！友人にシェアしてください。';
+    setTimeout(() => document.getElementById('copyMsg').textContent = '', 3000);
+  }).catch(() => {
+    document.getElementById('copyMsg').textContent = 'URLをコピーできませんでした。手動でコピーしてください。';
+  });
+}
+
+function restart() {
+  currentQ = 0; answers = []; selectedIndex = null;
+  document.getElementById('progressFill').style.width = '0%';
+  document.getElementById('progressLabel').textContent = '0 / 5';
+  setScreen('intro');
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>
