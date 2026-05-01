@@ -384,7 +384,7 @@ const T={
 };
 let lang='ja';
 function t(key,...args){const v=T[lang]?.[key]??T.ja[key];return typeof v==='function'?v(...args):(v??key);}
-function setLang(l,btn){lang=l;document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.documentElement.lang=l;applyLang();}
+function setLang(l,btn){lang=l;document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.documentElement.lang=l;applyLang();incrementCounter();}
 function applyLang(){
   ['appName','headerTagline','footerText'].forEach(id=>{const el=document.getElementById(id);if(el&&T[lang][id.replace('Text','')||id])el.textContent=t(id==='headerTagline'?'tagline':id==='footerText'?'footer':id);});
   document.getElementById('appName').textContent=t('appName');
